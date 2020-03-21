@@ -1,0 +1,2 @@
+# coronaStats
+Visualize corona statistics 
