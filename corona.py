@@ -39,10 +39,6 @@ thresholds = {
     "Recovered_relative": {'Days': 10, 'Cases': 20}, 
     }
     
-class NotImplemented(Exception):
-    pass
-
-
    
 def load_population(countries_file):
     with open(countries_file, "r", newline='') as f:
@@ -249,7 +245,6 @@ def visualize(corona):
 @click.option('--download/--no-download', default=False, help="Should new values be downloaded from URL")
 @click.option('-g', '--graph/--no-graph', default=True, help="Show graph")
 @click.option('-d', '--debug/--no-debug', default=False, help="Debug flag")
-# @click.option('-s', '--status', default=False, help="Show status information")
 def main(download, population, graph, debug):
     if download:
         raw_data = download_files(baseUrl, filenames)
