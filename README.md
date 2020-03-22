@@ -15,6 +15,11 @@ Population is a bit outdated, but probably does not make
 
 ## Approach 
 
+* Day 0 is normalized to the day a certain threshold number of cases
+  is exceeded (threshold value depends on category
+  Confirmed/Deaths/Recovered). Below threshold, there is too much
+  noise in the data; absolute date is more or less meaningless in any
+  case to compare epidemic processes. 
 * Filter out countries with too few days or too few cases. That would
   overburden the graph. 
 * That noteably removes the interesting special cases of Taiwan and
