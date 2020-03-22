@@ -247,7 +247,6 @@ def visualize(corona):
 
 @click.command()
 @click.option('--download/--no-download', default=False, help="Should new values be downloaded from URL")
-@click.option('-p', '--population', default="population-figures-by-country-csv_csv.csv", help="File from which population data should be obtained")
 @click.option('-g', '--graph/--no-graph', default=True, help="Show graph")
 @click.option('-d', '--debug/--no-debug', default=False, help="Debug flag")
 # @click.option('-s', '--status', default=False, help="Show status information")
