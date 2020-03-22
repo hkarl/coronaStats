@@ -19,6 +19,7 @@ import matplotlib
 matplotlib.use('TkAgg')
 from matplotlib import pyplot as plt
 
+debug = False 
 baseUrl = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/" 
 filenames = (
     "time_series_19-covid-Confirmed.csv",
@@ -28,8 +29,8 @@ filenames = (
 
 
 thresholds = {
-    "Confirmed": {'Days': 15, 'Cases': 50}, 
-    "Confirmed_relative": {'Days': 15, 'Cases': 50},
+    "Confirmed": {'Days': 18, 'Cases': 50}, 
+    "Confirmed_relative": {'Days': 18, 'Cases': 50},
     # 
     "Deaths": {'Days': 5, 'Cases': 10}, 
     "Deaths_relative": {'Days': 5, 'Cases': 10},
@@ -104,25 +105,32 @@ def get_csv(data):
             temp_entries_with_dates.append(tmp)
 
         # Summarize for China, US:
-        summarize_countries = ("China", "US")
+        summarize_countries = ("China", "US", "France", "United Kingdom")
         for s in summarize_countries:
             counties = [r for r in temp_entries_with_dates if r['Country/Region'] == s]
             new_entry = counties[0].copy()
             new_entry['Province/State'] = ""
             new_entry['dates'] = {}
             relevant_dates = set([x for r in counties for x in list(r['dates'].keys()) ])
-            # pp(relevant_dates)
             
             for kk in relevant_dates:
                 new_entry['dates'][kk] = sum( r['dates'][kk] for r in counties  )
+
+            if new_entry['Country/Region'] == 'US':
+                new_entry['Country/Region'] = 'United States'
+
+            if debug: 
+                print("Filtering: ", s)
+                pp(new_entry)
+                
             temp_entries_with_dates.append(new_entry)
 
         # filter out provinces
         actual_key = k[1+k.rfind('-'):-4]
         dataout[actual_key] = [r for r in temp_entries_with_dates if r['Province/State'] == ""]
         
-        
-    pp(dataout)
+    if debug:  
+        pp(dataout)
     # pp(dataout.keys())
     return dataout
 
@@ -130,7 +138,8 @@ def get_csv(data):
 def process_csv(population_data, corona_csv):
     """Clean up numbers, compute ratios proportional to population size"""
 
-    print("=======================")
+    if debug: 
+        print("=======================")
 
     countries = dict( ( (x[0], x[-1]) for x in population_data) ) 
 
@@ -139,7 +148,9 @@ def process_csv(population_data, corona_csv):
     for statistics_key, countrylist in corona_csv.items():
         for country in countrylist:
             countryname = country['Country/Region']
-            print(statistics_key, country['Country/Region']) 
+            if debug: 
+                print(statistics_key, country['Country/Region'])
+                
             # only consider country if it has at least a certain mimimum number of days 
             if len(country['dates'].keys()) < thresholds[statistics_key]['Days']:
                 continue
@@ -147,14 +158,16 @@ def process_csv(population_data, corona_csv):
             # only consider country if it has a certain minimum number of cases
             if max(country['dates'].values()) < thresholds[statistics_key]['Cases']:
                 continue
-
+            
+            
             values = [(k, country['dates'][k])
                           for k in sorted(country['dates'].keys())
                           if country['dates'][k] > thresholds[statistics_key]['Cases']
                           ]
-
+            
             if len(values) < thresholds[statistics_key]['Days']:
                 continue
+
             
             try:
                 population = int(countries[countryname])
@@ -165,23 +178,25 @@ def process_csv(population_data, corona_csv):
                 'start': values[0][0],
                 'population': population})
             corona[countryname][statistics_key] = [v[1] for v in values] 
-            corona[countryname][statistics_key + "_relative"] =  [float(v[1])/float(population) for v in values ] if population > 0 else None 
+            corona[countryname][statistics_key + "_relative"] =  [float(v[1]*100000)/float(population) for v in values ] if population > 0 else None 
             
 
-    pp(corona)
+    if debug: 
+        pp(corona)
+        
     return corona
 
 
-def visualize(corona, mincases, mindays):
+def visualize(corona):
 
     fields = (
         # key, titel, label, subplot positions 
-        ('Confirmed', 'Total cases', 'Total', 0, 0,),
-        ('Deaths', 'Total deaths',  'Total', 0, 1, ),
-        ('Confirmed_relative', 'Total cases, relative to population', "Relative to population", 1, 0, ),
-        ('Deaths_relative', 'Total deaths, relative to population', "Relative to population", 1, 1, ),
+        ('Confirmed', 'Total cases', 'Absolute numbers', 0, 0,),
+        ('Confirmed_relative', 'Total cases, relative to population', "Cases per 100.000", 1, 0, ),
+        ('Deaths', 'Total deaths',  'Absolute numbers', 0, 1, ),
+        ('Deaths_relative', 'Total deaths, relative to population', "Cases per 100.000", 1, 1, ),
         ('Recovered', 'Recovered cases', "Total", 0, 2, ),
-        ('Recovered_relative', 'Recovered, relative to population', "Relative to population", 1, 2, ),
+        ('Recovered_relative', 'Recovered, relative to population', "Cases per 100.000", 1, 2, ),
         )
 
     fig, ax = plt.subplots(2, 3)
@@ -198,15 +213,16 @@ def visualize(corona, mincases, mindays):
                         for country, values in corona.items()
                         if field in values
                         and not values[field] == None
-                        and len(values[field]) >= mindays
+                        and len(values[field]) >= thresholds[field]['Days']
                     ])
                     
 
-        color_count = count // 3 + 1 
+        color_count = (count // 3) + 2 
         ax[x][y].set_prop_cycle(color=plt.cm.Spectral([float(x)/(color_count*3) for x in range(color_count*3)]),
                           marker=['o', '+', 'x'] * color_count )
 
-        print (count, color_count) 
+        if debug: 
+            print (count, color_count) 
         
         for country, values in corona.items():
 
@@ -232,12 +248,10 @@ def visualize(corona, mincases, mindays):
 @click.command()
 @click.option('--download/--no-download', default=False, help="Should new values be downloaded from URL")
 @click.option('-p', '--population', default="population-figures-by-country-csv_csv.csv", help="File from which population data should be obtained")
-@click.option('-c', '--corona', default="full_data.csv", help="Where is data stored (overwritten upon download")
-@click.option('-m', '--mincases', default=50, help="Minimum total cases before country is considered")
-@click.option('-u', '--url', default="https://covid.ourworldindata.org/data/full_data.csv", help="From where should Corona data be downloaded?")
-@click.option('-d', '--days', default=10, help="Minimum number of days (after threshold) for which data must be available bbefore considering country in visualization")
+@click.option('-g', '--graph/--no-graph', default=True, help="Show graph")
+@click.option('-d', '--debug/--no-debug', default=False, help="Debug flag")
 # @click.option('-s', '--status', default=False, help="Show status information")
-def main(download, population, corona, mincases, url, days):
+def main(download, population, graph, debug):
     if download:
         raw_data = download_files(baseUrl, filenames)
     else:
@@ -249,9 +263,8 @@ def main(download, population, corona, mincases, url, days):
 
     data = process_csv(population_data, corona_csv)
 
-    pp(data)
-    
-    visualize(data, mincases, days) 
+    if graph: 
+        visualize(data) 
 
 if __name__ == '__main__':
     main()
