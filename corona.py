@@ -16,9 +16,10 @@ import click
 import requests
 
 import matplotlib
-matplotlib.use('TkAgg')
+# matplotlib.use('TkAgg')
 from matplotlib import pyplot as plt
 
+outputFile = "corona_stats.png"
 debug = False 
 baseUrl = "https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/" 
 filenames = (
@@ -181,7 +182,7 @@ def process_csv(population_data, corona_csv):
     return corona
 
 
-def visualize(corona):
+def visualize(corona, interactive):
 
     fields = (
         # key, titel, label, subplot positions 
@@ -193,7 +194,7 @@ def visualize(corona):
         ('Recovered_relative', 'Recovered, relative to population', "Cases per 100.000", 1, 2, ),
         )
 
-    fig, ax = plt.subplots(2, 3)
+    fig, ax = plt.subplots(2, 3, figsize=(20, 10))
 
     for field, title, valuelabel, x, y,  in fields: 
 
@@ -236,14 +237,17 @@ def visualize(corona):
         ax[x][y].grid()
         ax[x][y].legend()
 
-    plt.show()
-    
+    if interactive: 
+        plt.show()
+    else: 
+        fig.savefig(outputFile)
 
 @click.command()
 @click.option('--download/--no-download', default=False, help="Should new values be downloaded from URL")
 @click.option('-g', '--graph/--no-graph', default=True, help="Show graph")
+@click.option('-i', '--interactive/--no-interactive', default=False, help="Display the graph OR save to disk?")
 @click.option('-d', '--debug/--no-debug', default=False, help="Debug flag")
-def main(download, graph, debug):
+def main(download, graph, interactive, debug):
     if download:
         raw_data = download_files(baseUrl, filenames)
     else:
@@ -256,7 +260,7 @@ def main(download, graph, debug):
     data = process_csv(population_data, corona_csv)
 
     if graph: 
-        visualize(data) 
+        visualize(data, interactive) 
 
 if __name__ == '__main__':
     main()
