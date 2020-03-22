@@ -69,8 +69,6 @@ def load_files(filenames):
 def get_csv(data):
     """ turn raw data into useful CSV output"""
 
-    myint = lambda s: int(s) if s.isdigit() else s
-
     dataout = {}
     for k, v in data.items():
         reader = csv.DictReader(io.StringIO(v), delimiter=",")
