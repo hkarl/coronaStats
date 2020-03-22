@@ -78,7 +78,7 @@ def get_csv(data):
         
         # Some immediate cleanup:
         for r in temp_entries:
-            # ensure consistency with population data: 
+            # ensure consistency with population data (fix US later for different counties): 
             if r['Country/Region'] == 'Korea, South':
                 r['Country/Region'] = 'South Korea'
 
