@@ -36,3 +36,9 @@ Pull requests welcome!
 ### PDF 
 
 <a href="https://hkarl.github.io/coronaStats/corona_stats.pdf"> PDF </a>
+
+
+## Other pages 
+
+See Stefan Schenider's page for details about Germany
+https://stefanbschneider.github.io/covid19/ 
