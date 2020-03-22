@@ -243,13 +243,13 @@ def visualize(corona):
 @click.option('--download/--no-download', default=False, help="Should new values be downloaded from URL")
 @click.option('-g', '--graph/--no-graph', default=True, help="Show graph")
 @click.option('-d', '--debug/--no-debug', default=False, help="Debug flag")
-def main(download, population, graph, debug):
+def main(download, graph, debug):
     if download:
         raw_data = download_files(baseUrl, filenames)
     else:
         raw_data = load_files(filenames) 
 
-    population_data = load_population(population)
+    population_data = load_population("population-figures-by-country-csv_csv.csv")
 
     corona_csv = get_csv(raw_data)
 
