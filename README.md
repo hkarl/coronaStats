@@ -12,4 +12,4 @@ Download case numbers and visualize; logarithmic plots over countries
 
 ### PDF 
 
-![Corona Statistics](corona_stats.pdf) 
+<a href="https://hkarl.github.io/coronaStats/corona_stats.pdf"> PDF </a>
