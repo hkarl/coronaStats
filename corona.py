@@ -241,6 +241,7 @@ def visualize(corona, interactive):
         plt.show()
     else: 
         fig.savefig(outputFile)
+        fig.savefig("corona_stats.pdf")
 
 @click.command()
 @click.option('--download/--no-download', default=False, help="Should new values be downloaded from URL")
